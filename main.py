@@ -42,7 +42,6 @@ METRIC = [
 
 def fetch_json(repo, metric):
     url = BASE_URL.format(repo, metric=metric)
-    print(url)
     response = requests.get(url)
     if response.status_code == 200:
         return response.json()
@@ -60,16 +59,30 @@ def main():
     repo = args.repo
     metric = args.metric.lower()
 
-    json_data = fetch_json(repo, metric)
-    if json_data:
-        if args.month:
-            month_data = json_data.get(args.month)
-            if month_data:
-                print(f"{metric} for {args.month}: {month_data}")
+
+    if metric == "all":
+        for m in METRIC:
+            json_data = fetch_json(repo, m)
+            if json_data:
+                if args.month:
+                    month_data = json_data.get(args.month)
+                    if month_data:
+                        print(f"{m} for {args.month}: {month_data}")
+                    else:
+                        print(f"No data available for {args.month} in metric: {m}.")
+                else:
+                    print(json_data)
+    else:
+        json_data = fetch_json(repo, metric)
+        if json_data:
+            if args.month:
+                month_data = json_data.get(args.month)
+                if month_data:
+                    print(f"{metric} for {args.month}: {month_data}")
+                else:
+                    print(f"No data available for {args.month}.")
             else:
-                print(f"No data available for {args.month}.")
-        else:
-            print(json_data)
+                print(json_data)
 
 if __name__ == "__main__":
     main()
