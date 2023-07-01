@@ -1,5 +1,9 @@
 import requests
 import argparse
+import csv
+import os
+from datetime import datetime
+
 
 BASE_URL = "https://oss.x-lab.info/open_digger/github/{}/{metric}.json"
 DEFAULT_REPO = "X-lab2017/open-digger"
@@ -49,6 +53,16 @@ def fetch_json(repo, metric):
         print("Failed to fetch JSON data.")
         return None
 
+
+def write_to_csv(filename, data):
+    with open(filename, mode='w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(['Metric', 'Month', 'Value'])
+        for metric, month_data in data.items():
+            for month, value in month_data.items():
+                writer.writerow([metric, month, value])
+            
+
 def main():
     parser = argparse.ArgumentParser(description="OpenDigger Command Line Tool")
     parser.add_argument("--repo", default=DEFAULT_REPO, type=str, help="Repository name (e.g., X-lab2017/open-digger)")
@@ -59,7 +73,8 @@ def main():
     repo = args.repo
     metric = args.metric.lower()
 
-
+    result = {}
+    
     if metric == "all":
         for m in METRIC:
             json_data = fetch_json(repo, m)
@@ -68,10 +83,12 @@ def main():
                     month_data = json_data.get(args.month)
                     if month_data:
                         print(f"{m} for {args.month}: {month_data}")
+                        result[m] = {args.month: month_data}
                     else:
                         print(f"No data available for {args.month} in metric: {m}.")
                 else:
                     print(json_data)
+                    result[m] = json_data
     else:
         json_data = fetch_json(repo, metric)
         if json_data:
@@ -79,10 +96,18 @@ def main():
                 month_data = json_data.get(args.month)
                 if month_data:
                     print(f"{metric} for {args.month}: {month_data}")
+                    result[metric] = {args.month: month_data}
                 else:
                     print(f"No data available for {args.month}.")
             else:
                 print(json_data)
+                result[metric] = json_data
+
+    os.makedirs("result", exist_ok=True)
+
+    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+    filename = f"result/{timestamp}.csv"
+    write_to_csv(filename, result)
 
 if __name__ == "__main__":
     main()
