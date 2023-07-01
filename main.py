@@ -1,7 +1,9 @@
 import requests
+import argparse
 
-
-DEFAULT_TARGET = "X-lab2017/open-digger"
+BASE_URL = "https://oss.x-lab.info/open_digger/github/{}/{metric}.json"
+DEFAULT_REPO = "X-lab2017/open-digger"
+DEFAULT_METRIC = "openrank"
 
 METRIC = [
     "openrank",
@@ -38,37 +40,44 @@ METRIC = [
 ]
 
 
-def fetch_json(target, metric):
-    url = f"https://oss.x-lab.info/open_digger/github/{target}/{metric}.json"
+def fetch_json(repo, metric):
+    url = BASE_URL.format(repo, metric=metric)
+    print(url)
     response = requests.get(url)
     if response.status_code == 200:
         return response.json()
     else:
-        return None
-
-def get_value_by_month(data, month):
-    if month in data:
-        return data[month]
-    else:
-        return None
-
-if __name__ == '__main__':
-    target = DEFAULT_TARGET
-    metric = "project_openrank_detail"
-    json_data = fetch_json(target, metric)
-    if json_data is not None:
-        print("JSON data fetched successfully.")
-        month = input("Enter the month (optional): ")
-        if month:
-            value = get_value_by_month(json_data, month)
-            if value is not None:
-                print(f"Value for {metric} in {month}: {value}")
-            else:
-                print(f"No data available for {metric} in {month}.")
-        else:
-            print("No specific month provided.")
-    else:
         print("Failed to fetch JSON data.")
+        return None
+
+def main():
+    parser = argparse.ArgumentParser(description="OpenDigger Command Line Tool")
+    parser.add_argument("--repo", default=DEFAULT_REPO, type=str, help="Repository name (e.g., X-lab2017/open-digger)")
+    parser.add_argument("--metric", default=DEFAULT_METRIC, type=str, help="Metric name (e.g., OpenRank)")
+    parser.add_argument("--month", type=str, help="Optional: Specify a month to get the specific value")
+    args = parser.parse_args()
+
+    repo = args.repo
+    metric = args.metric.lower()
+
+    json_data = fetch_json(repo, metric)
+    if json_data:
+        if args.month:
+            month_data = json_data.get(args.month)
+            if month_data:
+                print(f"{metric} for {args.month}: {month_data}")
+            else:
+                print(f"No data available for {args.month}.")
+        else:
+            print(json_data)
+
+if __name__ == "__main__":
+    main()
+
+
+
+
+
 
 
 
