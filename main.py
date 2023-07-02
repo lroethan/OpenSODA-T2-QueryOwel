@@ -3,6 +3,7 @@ import argparse
 import csv
 import os
 from datetime import datetime
+from LRU_cache import LRUCache
 
 
 BASE_URL = "https://oss.x-lab.info/open_digger/github/{}/{metric}.json"
@@ -74,10 +75,15 @@ def main():
     metric = args.metric.lower()
 
     result = {}
+    cache = LRUCache(5)
     
     if metric == "all":
         for m in METRIC:
-            json_data = fetch_json(repo, m)
+            json_data = cache.get((repo, m))
+            if json_data is None:
+                json_data = fetch_json(repo, m)
+                if json_data:
+                    cache.put((repo, m), json_data)
             if json_data:
                 if args.month:
                     month_data = json_data.get(args.month)
@@ -90,7 +96,11 @@ def main():
                     print(json_data)
                     result[m] = json_data
     else:
-        json_data = fetch_json(repo, metric)
+        json_data = cache.get((repo, metric))
+        if json_data is None:
+            json_data = fetch_json(repo, metric)
+            if json_data:
+                cache.put((repo, metric), json_data)
         if json_data:
             if args.month:
                 month_data = json_data.get(args.month)
@@ -103,6 +113,7 @@ def main():
                 print(json_data)
                 result[metric] = json_data
 
+    print(cache.cache_info())  
     os.makedirs("result", exist_ok=True)
 
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
