@@ -9,6 +9,7 @@ from LRU_cache import LRUCache
 BASE_URL = "https://oss.x-lab.info/open_digger/github/{}/{metric}.json"
 DEFAULT_REPO = "X-lab2017/open-digger"
 DEFAULT_METRIC = "openrank"
+DEFAULT_MONTH = "2022-06"
 
 METRIC = [
     "openrank",
@@ -41,7 +42,7 @@ METRIC = [
     "activity_details",
     "developer_network",
     "repo_network",
-    "project_openrank_detail"
+    "project_openrank_detail",
 ]
 
 
@@ -56,19 +57,34 @@ def fetch_json(repo, metric):
 
 
 def write_to_csv(filename, data):
-    with open(filename, mode='w', newline='') as file:
+    with open(filename, mode="w", newline="") as file:
         writer = csv.writer(file)
-        writer.writerow(['Metric', 'Month', 'Value'])
+        writer.writerow(["Metric", "Month", "Value"])
         for metric, month_data in data.items():
             for month, value in month_data.items():
                 writer.writerow([metric, month, value])
-            
+
 
 def main():
     parser = argparse.ArgumentParser(description="OpenDigger Command Line Tool")
-    parser.add_argument("--repo", default=DEFAULT_REPO, type=str, help="Repository name (e.g., X-lab2017/open-digger)")
-    parser.add_argument("--metric", default=DEFAULT_METRIC, type=str, help="Metric name (e.g., OpenRank)")
-    parser.add_argument("--month", type=str, help="Optional: Specify a month to get the specific value")
+    parser.add_argument(
+        "--repo",
+        default=DEFAULT_REPO,
+        type=str,
+        help="Repository name (e.g., X-lab2017/open-digger)",
+    )
+    parser.add_argument(
+        "--metric",
+        default=DEFAULT_METRIC,
+        type=str,
+        help="Metric name (e.g., OpenRank), or 'all' to get all metrics",
+    )
+    parser.add_argument(
+        "--month",
+        default=DEFAULT_MONTH,
+        type=str,
+        help="Optional: Specify a month to get the specific value",
+    )
     args = parser.parse_args()
 
     repo = args.repo
@@ -76,7 +92,7 @@ def main():
 
     result = {}
     cache = LRUCache(5)
-    
+
     if metric == "all":
         for m in METRIC:
             json_data = cache.get((repo, m))
@@ -113,21 +129,12 @@ def main():
                 print(json_data)
                 result[metric] = json_data
 
-    print(cache.cache_info())  
     os.makedirs("result", exist_ok=True)
 
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
     filename = f"result/{timestamp}.csv"
     write_to_csv(filename, result)
 
+
 if __name__ == "__main__":
     main()
-
-
-
-
-
-
-
-
-
