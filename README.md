@@ -34,5 +34,34 @@ pip install -r requirements.txt
 ```
 2. 运行 `main.py`：
 ```python
-python main.py --month=2022-05
+python main.py 
+```
+，将以默认参数执行
+
+例子 1
+
+```python
+python main.py --month="[2022-02, 2022-06]"
+
+[repo.name = X-lab2017/open-digger]
+openrank for 2022-02: 4.87
+openrank for 2022-03: 6.06
+openrank for 2022-04: 3.76
+openrank for 2022-05: 4.14
+```
+
+例子 2
+```python
+python main.py --month="(2022-02, 2021-09)"
+
+[repo.name = X-lab2017/open-digger]
+openrank for 2022-02: 4.87
+openrank for 2021-09: 3.34
+```
+例子 3
+```python
+python main.py --month=2022-02
+
+[repo.name = X-lab2017/open-digger]
+openrank for 2022-02: 4.87
 ```

@@ -2,7 +2,7 @@ import requests
 import argparse
 import csv
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 from LRU_cache import LRUCache
 
 
@@ -65,6 +65,25 @@ def write_to_csv(filename, data):
                 writer.writerow([metric, month, value])
 
 
+def parse_month(month):
+    if "(" in month:
+        # Discrete time points, e.g., (2022-02, 2022-05, 2021-09)
+        return month.strip("()").split(", ")
+    elif "[" in month:
+        # Closed interval, e.g., [2022-02, 2022-06]
+        start, end = month.strip("[]").split(", ")
+        start_date = datetime.strptime(start, "%Y-%m")
+        end_date = datetime.strptime(end, "%Y-%m")
+        months = []
+        while start_date <= end_date:
+            months.append(start_date.strftime("%Y-%m"))
+            start_date += timedelta(days=31)
+        return months
+    else:
+        # Single time point, e.g., 2022-06
+        return [month]
+    
+
 def main():
     parser = argparse.ArgumentParser(description="OpenDigger Command Line Tool")
     parser.add_argument(
@@ -102,12 +121,14 @@ def main():
                     cache.put((repo, m), json_data)
             if json_data:
                 if args.month:
-                    month_data = json_data.get(args.month)
-                    if month_data:
-                        print(f"{m} for {args.month}: {month_data}")
-                        result[m] = {args.month: month_data}
-                    else:
-                        print(f"No data available for {args.month} in metric: {m}.")
+                    months = parse_month(args.month)
+                    for month in months:
+                        month_data = json_data.get(month)
+                        if month_data:
+                            print(f"{m} for {month}: {month_data}")
+                            result[m] = {month: month_data}
+                        else:
+                            print(f"No data available for {month} in metric: {m}.")
                 else:
                     print(json_data)
                     result[m] = json_data
@@ -119,16 +140,18 @@ def main():
                 cache.put((repo, metric), json_data)
         if json_data:
             if args.month:
-                month_data = json_data.get(args.month)
-                if month_data:
-                    print(f"{metric} for {args.month}: {month_data}")
-                    result[metric] = {args.month: month_data}
-                else:
-                    print(f"No data available for {args.month}.")
+                months = parse_month(args.month)
+                for month in months:
+                    month_data = json_data.get(month)
+                    if month_data:
+                        print(f"{metric} for {month}: {month_data}")
+                        result[metric] = {month: month_data}
+                    else:
+                        print(f"No data available for {month}.")
             else:
                 print(json_data)
                 result[metric] = json_data
-
+                
     os.makedirs("result", exist_ok=True)
 
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
