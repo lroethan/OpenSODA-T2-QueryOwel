@@ -233,6 +233,7 @@ def arg_parse():
 
     return parser.parse_args()
 
+    
 
 def main():
     options._options = arg_parse()
@@ -317,7 +318,7 @@ def main():
         if is_continue.lower() == "n":
             break
 
-    print("\nBye\U0001F989~")
+    print(_c("\nBye\U0001F989~", "green"))
 
 
 if __name__ == "__main__":
