@@ -7,7 +7,8 @@ import csv
 import os
 import sys
 from datetime import datetime, timedelta
-from LRU_cache import LRUCache
+from collections import OrderedDict
+import json
 
 
 BASE_URL = "https://oss.x-lab.info/open_digger/github/{}/{metric}.json"
@@ -64,6 +65,28 @@ X_METRIC = [
 
 
 C_METRIC = list(set(METRIC) - set(X_METRIC))
+
+
+class LRUCache:
+    def __init__(self, capacity):
+        self.capacity = capacity
+        self.cache = OrderedDict()
+
+    def get(self, key):
+        if key in self.cache:
+            self.cache.move_to_end(key)
+            return self.cache[key]
+        return None
+
+    def put(self, key, value):
+        if key in self.cache:
+            self.cache.move_to_end(key)
+        self.cache[key] = value
+        if len(self.cache) > self.capacity:
+            self.cache.popitem(last=False)
+
+    def __repr__(self):
+        return repr(self.cache)
 
 
 class GlobalOptions(object):
@@ -133,7 +156,6 @@ def fetch_json(repo, metric):
     if response.status_code == 200:
         return response.json()
     else:
-        print("Failed to fetch JSON data.")
         return None
 
 
@@ -186,21 +208,21 @@ def arg_parse():
         "--repo",
         default=DEFAULT_REPO,
         type=str,
-        help="Repository name (e.g., X-lab2017/open-digger)",
+        help="Repository name (e.g., X-lab2017/open-digger) [GOLBAL SETTING] ",
     )
     parser.add_argument(
         "-m",
         "--metric",
         default=DEFAULT_METRIC,
         type=str,
-        help="Metric name (e.g., OpenRank), or 'all' to get all metrics",
+        help="Metric name (e.g., OpenRank), or 'all' to get all metrics [GOLBAL SETTING]",
     )
     parser.add_argument(
         "-t",
         "--month",
         default=DEFAULT_MONTH,
         type=str,
-        help="Optional: Specify a month to get the specific value",
+        help="Optional: Specify a month to get the specific value [GOLBAL SETTING]",
     )
     parser.add_argument(
         "--color",
@@ -224,52 +246,78 @@ def main():
         pass
     while True:
         try:
-            repo = input("Repositiy Name: ")
-            metric = parse_metric(input("Metric Name: ").lower())
-            month = parse_month(input("Month: "))
+            repo_input = input("Repository Name: ")
+            metric_input = input("Metric Name: ")
+            month_input = input("Month: ")
+
+            if repo_input != "":
+                options.repo = repo_input
+
+            if metric_input != "":
+                options.metric = metric_input
+
+            if month_input != "":
+                options.month = month_input
+
         except KeyboardInterrupt:
             break
         except EOFError:
             break
 
         result = {}
-        print(_c(f"Repo.name = {repo}", "green"))
+        repo = options.repo
+        l_metric = parse_metric(options.metric.lower())
+        l_month = parse_month(options.month)
+
+        print(_c(f"Repo.name = {repo}", "yellow"))
         header = "| {:<10} | {:<10} | {:<10} |".format("Metric", "Month", "Value")
         line = "+{:-^12}+{:-^12}+{:-^12}+".format("", "", "")
 
         print(line)
         print(header)
         print(line)
-        for m in metric:
+
+        for m in l_metric:
             json_data = cache.get((repo, m))
             if json_data is None:
                 json_data = fetch_json(repo, m)
                 if json_data:
                     cache.put((repo, m), json_data)
             if json_data:
-                if options.month:
-                    months = parse_month(options.month)
-                    for month in months:
+                if l_month != ["-"]:
+                    for month in l_month:
                         month_data = json_data.get(month)
                         if month_data:
-                            output = "| {:<10} | {:<10} | {:<10} |".format(m, month, month_data)
+                            output = "| {:<10} | {:<10} | {:<10} |".format(
+                                m, month, month_data
+                            )
                             print(output)
                             result[m] = {month: month_data}
                         else:
-                            print("| {:<10} | {:<10} | {:<10} |".format(m, month, "No data"))
+                            print(
+                                "| {:<10} | {:<10} | {:<10} |".format(
+                                    m, month, "No data"
+                                )
+                            )
                             print(line)
                 else:
-                    print("| {:<10} | {:<10} | {:<10} |".format(m, "All months", json_data))
-                    print(line)
-                    result[m] = json_data
-        print(line)
+                    for month, month_data in json_data.items():
+                        print(
+                            "| {:<10} | {:<10} | {:<10} |".format(m, month, month_data)
+                        )
+                        print(line)
+                        result[m] = {month: month_data}
         os.makedirs("result", exist_ok=True)
 
         timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
         filename = f"result/{timestamp}.csv"
         write_to_csv(filename, result)
+        
+        is_continue = input("Continue? [Y/n] ")
+        if is_continue.lower() == "n":
+            break
 
-    print("\nBye~")
+    print("\nBye\U0001F989~")
 
 
 if __name__ == "__main__":
