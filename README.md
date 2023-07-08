@@ -32,51 +32,50 @@
 ```python
 pip install -r requirements.txt
 ```
-2. 运行 `main.py`：
+2. 运行 `owel.py`，启动前输入的参数将作为全局缺省默认参数：
 ```python
-python main.py 
+python src/owel.py [--repo=] [--month=] [--metric=]
 ```
 ，将以默认参数执行
 
 ### 3. 使用示例
-示例 1
+【示例 1】全局设置默认参数，后续在未输入具体值的选项会自动走全局值
 
 ```python
-python main.py --month="[2022-02, 2022-06]"
+python owel.py --month="2022-02" --metric="openrank" --repo="lroethan"
+Repository Name: 
+Metric Name: 
+Month: 
 
-[repo.name = X-lab2017/open-digger]
-openrank for 2022-02: 4.87
-openrank for 2022-03: 6.06
-openrank for 2022-04: 3.76
-openrank for 2022-05: 4.14
+Repo.name = lroethan
++------------+------------+------------+
+| Metric     | Month      | Value      |
++------------+------------+------------+
+| openrank   | 2022-02    | No data    |
++------------+------------+------------+
 ```
 
-示例 2
+【示例 2】使用泛化时间参数 `-`，将查询所有月份。
 ```python
-python main.py --month="(2022-02, 2021-09)"
+Repository Name: lroethan
+Metric Name: openrank
+Month: -
 
-[repo.name = X-lab2017/open-digger]
-openrank for 2022-02: 4.87
-openrank for 2021-09: 3.34
-```
-示例 3
-```python
-python main.py --month=2022-02
-
-[repo.name = X-lab2017/open-digger]
-openrank for 2022-02: 4.87
 ```
 
-示例 4
+【示例 3】使用泛化指标名，例如 `x-all`，`c-all`，`all`，使用离散时间点 `(2022-04, 2022-05, 2022-06）`
 ```python
-python main.py --metric=x-all
+Repository Name: lroethan
+Metric Name: x-all
+Month: (2022-04, 2022-05, 2022-06)
 
-[repo.name = X-lab2017/open-digger]
-openrank for 2022-06: 7.67
-activity for 2022-06: 49.74
-attention for 2022-06: 7
-stars for 2022-06: 1
-participants for 2022-06: 18
-issue_comments for 2022-06: 81
+Repo.name = lroethan
++------------+------------+------------+
+| Metric     | Month      | Value      |
++------------+------------+------------+
+| openrank   | 2022-04    | 1.25       |
++------------+------------+------------+
+| openrank   | 2022-05    | 1.1        |
++------------+------------+------------+
 ...
 ```
