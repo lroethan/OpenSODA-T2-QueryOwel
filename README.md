@@ -38,7 +38,8 @@ python main.py
 ```
 ，将以默认参数执行
 
-例子 1
+### 3. 使用示例
+示例 1
 
 ```python
 python main.py --month="[2022-02, 2022-06]"
@@ -50,7 +51,7 @@ openrank for 2022-04: 3.76
 openrank for 2022-05: 4.14
 ```
 
-例子 2
+示例 2
 ```python
 python main.py --month="(2022-02, 2021-09)"
 
@@ -58,10 +59,24 @@ python main.py --month="(2022-02, 2021-09)"
 openrank for 2022-02: 4.87
 openrank for 2021-09: 3.34
 ```
-例子 3
+示例 3
 ```python
 python main.py --month=2022-02
 
 [repo.name = X-lab2017/open-digger]
 openrank for 2022-02: 4.87
+```
+
+示例 4
+```python
+python main.py --metric=x-all
+
+[repo.name = X-lab2017/open-digger]
+openrank for 2022-06: 7.67
+activity for 2022-06: 49.74
+attention for 2022-06: 7
+stars for 2022-06: 1
+participants for 2022-06: 18
+issue_comments for 2022-06: 81
+...
 ```
