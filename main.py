@@ -45,6 +45,22 @@ METRIC = [
     "project_openrank_detail",
 ]
 
+X_METRIC = [
+    "openrank",
+    "activity",
+    "attention",
+    "stars",
+    "participants",
+    "issue_comments",
+    "activity_details",
+    "developer_network",
+    "repo_network",
+    "project_openrank_detail",
+]
+
+
+C_METRIC = list(set(METRIC) - set(X_METRIC))
+
 
 def fetch_json(repo, metric):
     url = BASE_URL.format(repo, metric=metric)
@@ -83,6 +99,17 @@ def parse_month(month):
         # Single time point, e.g., 2022-06
         return [month]
     
+def parse_metric(metric):
+    if "(" in metric:
+        return metric.strip("()").split(", ")
+    elif metric == "all":
+        return METRIC
+    elif metric == "x-all":
+        return X_METRIC
+    elif metric == "c-all":
+        return C_METRIC
+    else:
+        return [metric]
 
 def main():
     parser = argparse.ArgumentParser(description="OpenDigger Command Line Tool")
@@ -107,50 +134,34 @@ def main():
     args = parser.parse_args()
 
     repo = args.repo
+    print(f"[repo.name = {repo}]")
     metric = args.metric.lower()
+    l_metric = parse_metric(metric)
 
     result = {}
     cache = LRUCache(5)
-
-    if metric == "all":
-        for m in METRIC:
-            json_data = cache.get((repo, m))
-            if json_data is None:
-                json_data = fetch_json(repo, m)
-                if json_data:
-                    cache.put((repo, m), json_data)
-            if json_data:
-                if args.month:
-                    months = parse_month(args.month)
-                    for month in months:
-                        month_data = json_data.get(month)
-                        if month_data:
-                            print(f"{m} for {month}: {month_data}")
-                            result[m] = {month: month_data}
-                        else:
-                            print(f"No data available for {month} in metric: {m}.")
-                else:
-                    print(json_data)
-                    result[m] = json_data
-    else:
-        json_data = cache.get((repo, metric))
+    
+    
+    for m in l_metric:
+        json_data = cache.get((repo, m))
         if json_data is None:
-            json_data = fetch_json(repo, metric)
+            json_data = fetch_json(repo, m)
             if json_data:
-                cache.put((repo, metric), json_data)
+                cache.put((repo, m), json_data)
         if json_data:
             if args.month:
                 months = parse_month(args.month)
                 for month in months:
                     month_data = json_data.get(month)
                     if month_data:
-                        print(f"{metric} for {month}: {month_data}")
-                        result[metric] = {month: month_data}
+                        print(f"{m} for {month}: {month_data}")
+                        result[m] = {month: month_data}
                     else:
-                        print(f"No data available for {month}.")
+                        print(f"No data available for {month} in metric: {m}.")
             else:
                 print(json_data)
-                result[metric] = json_data
+                result[m] = json_data
+
                 
     os.makedirs("result", exist_ok=True)
 
