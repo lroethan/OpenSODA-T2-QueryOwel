@@ -216,39 +216,60 @@ def main():
     options._options = arg_parse()
     _c = Colorizing.colorize
 
-    repo = options.repo
-    print(_c(f"[repo.name = {repo}]", "green"))
-    metric = options.metric.lower()
-    l_metric = parse_metric(metric)
-
-    result = {}
     cache = LRUCache(5)
 
-    for m in l_metric:
-        json_data = cache.get((repo, m))
-        if json_data is None:
-            json_data = fetch_json(repo, m)
+    try:
+        import readline
+    except ImportError:
+        pass
+    while True:
+        try:
+            repo = input("Repositiy Name: ")
+            metric = parse_metric(input("Metric Name: ").lower())
+            month = parse_month(input("Month: "))
+        except KeyboardInterrupt:
+            break
+        except EOFError:
+            break
+
+        result = {}
+        print(_c(f"Repo.name = {repo}", "green"))
+        header = "| {:<10} | {:<10} | {:<10} |".format("Metric", "Month", "Value")
+        line = "+{:-^12}+{:-^12}+{:-^12}+".format("", "", "")
+
+        print(line)
+        print(header)
+        print(line)
+        for m in metric:
+            json_data = cache.get((repo, m))
+            if json_data is None:
+                json_data = fetch_json(repo, m)
+                if json_data:
+                    cache.put((repo, m), json_data)
             if json_data:
-                cache.put((repo, m), json_data)
-        if json_data:
-            if options.month:
-                months = parse_month(options.month)
-                for month in months:
-                    month_data = json_data.get(month)
-                    if month_data:
-                        print(f"{m} for {month}: {month_data}")
-                        result[m] = {month: month_data}
-                    else:
-                        print(f"No data available for {month} in metric: {m}.")
-            else:
-                print(json_data)
-                result[m] = json_data
+                if options.month:
+                    months = parse_month(options.month)
+                    for month in months:
+                        month_data = json_data.get(month)
+                        if month_data:
+                            output = "| {:<10} | {:<10} | {:<10} |".format(m, month, month_data)
+                            print(output)
+                            result[m] = {month: month_data}
+                        else:
+                            print("| {:<10} | {:<10} | {:<10} |".format(m, month, "No data"))
+                            print(line)
+                else:
+                    print("| {:<10} | {:<10} | {:<10} |".format(m, "All months", json_data))
+                    print(line)
+                    result[m] = json_data
+        print(line)
+        os.makedirs("result", exist_ok=True)
 
-    os.makedirs("result", exist_ok=True)
+        timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+        filename = f"result/{timestamp}.csv"
+        write_to_csv(filename, result)
 
-    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-    filename = f"result/{timestamp}.csv"
-    write_to_csv(filename, result)
+    print("\nBye~")
 
 
 if __name__ == "__main__":
