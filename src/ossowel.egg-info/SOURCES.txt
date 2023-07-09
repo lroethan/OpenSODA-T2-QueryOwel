@@ -1,8 +1,0 @@
-LICENSE
-README.md
-setup.py
-src/ossowel.egg-info/PKG-INFO
-src/ossowel.egg-info/SOURCES.txt
-src/ossowel.egg-info/dependency_links.txt
-src/ossowel.egg-info/entry_points.txt
-src/ossowel.egg-info/top_level.txt
