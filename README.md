@@ -1,12 +1,10 @@
-# Owel Tool
+# ossowel 
 
 本项目为 OpenSODA 大赛的 **T2：命令行交互的指标结果查询子模块** 的提交作品，该工具主要以 `Python` 实现。输入为查询条件，在命令行显示查询结果并导出至`.csv` 文件。
 
-### 1. 工具设计
+## 1. 工具设计
 
-
-
-#### 【输入】
+### 【输入】
 目前，此工具的基本输入为 `指标名`，`仓库名` 以及 `时间范围`：
 - `指标名`：输入为一组指标名（可以为单指标），具体包括：
   - 泛化指标名 `all`，`x-all`，`c-all` 均代表一组指标名，`all` 为查询目前 OpenDigger 支持的所有指标，`x-all` 对应 X-Lab 作为源的指标名集合，`c-all` 代表 CHAOSS 指标名集合
@@ -19,17 +17,19 @@
 - `仓库名`：仓库名可以指 用户 或 仓库，需要用户自己判别。例如某些指标是不支持用户级别的查询的，在目前版本没有对此类情况的处理。
 
 
-#### 【输出】
+### 【输出】
 - CLI 显示
 - 导出为 `.csv` 文件，以时间戳记录本次查询结果；
 - 导出为 `.html` 文件，渲染更为美观（TODO）
 
-#### 【概要设计】
+### 【概要设计】
 
 ![基本思想](png/queryowel-design.png)
 
 
-### 2. 使用说明
+## 2. 使用说明
+
+### 2.1 Python 脚本直接运行（方式一）
 
 1. 首先安装本项目运行所需的依赖
 ```python
@@ -41,6 +41,33 @@ python src/owel.py [--repo=] [--month=] [--metric=]
 ```
 ，将以默认参数执行
 
+### 2.2 安装后使用（方式二）
+
+1. 通过安装 build 包，可以使用其提供的命令行工具来构建和打包 Python 项目，例如创建源代码分发包或生成安装包:
+```shell
+python -m pip install build
+```
+
+2. 执行 build：
+```shell
+python -m build --sdist
+python -m build --wheel
+```
+
+3. 安装 ossowel 包：
+```shell
+pip install dist/ossowel-0.0.1-py3-none-any.whl
+```
+
+> 注：由于时间问题，未上传至 Pypi。
+
+4. 使用（如图所示）
+   
+
+![Alt text](png/lib-use.png)
+
+
+### 2.3 使用说明（以方式一为例，方式二同理）
 
 【示例 1】全局设置默认参数，后续在未输入具体值的选项会自动走全局值
 
@@ -63,7 +90,6 @@ Repo.name = lroethan
 Repository Name: lroethan
 Metric Name: openrank
 Month: -
-
 ```
 
 【示例 3】使用泛化指标名，例如 `x-all`，`c-all`，`all`，使用离散时间点 `(2022-04, 2022-05, 2022-06）`
@@ -83,4 +109,3 @@ Repo.name = lroethan
 ...
 ```
 
-### 3. 开发说明

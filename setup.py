@@ -17,9 +17,9 @@ setup(
     url="https://github.com/lroethan/OpenSODA-T2-QueryOwel",
     license="GPL",
     package_dir={'': 'src'},
-    py_modules=['woel'],
+    py_modules=['owel'],
     entry_points={
-        'console_scripts': ['owel=owel:main'],
+        'console_scripts': ['ossowel=owel:main'],
     },
     setup_requires=setup_requires,
     use_scm_version=True,

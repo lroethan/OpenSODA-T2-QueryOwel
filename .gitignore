@@ -1,3 +1,7 @@
 result/
 .vscode/
 __pycache__/
+build/
+dist/
+src/ossowel.egg-info/
+
