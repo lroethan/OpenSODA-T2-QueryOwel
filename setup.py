@@ -2,13 +2,13 @@
 import sys
 from setuptools import setup
 
-setup_requires = ['setuptools_scm']
+setup_requires = ['requests>2.18']
 if sys.argv[-1] in ('sdist', 'bdist_wheel'):
     setup_requires.append('setuptools-markdown')
 
 
 setup(
-    name="open-owel",
+    name="ossowel",
     version="0.0.1",
     description="OpenDigger Command Line Tool",
     long_description_markdown_filename='README.md',
@@ -17,7 +17,7 @@ setup(
     url="https://github.com/lroethan/OpenSODA-T2-QueryOwel",
     license="GPL",
     package_dir={'': 'src'},
-    py_modules=['owel'],
+    py_modules=['woel'],
     entry_points={
         'console_scripts': ['owel=owel:main'],
     },
